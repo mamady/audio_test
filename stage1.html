@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test</title>
+<script src="./wavefile.js"></script>
+<script src="./audio_data.js"></script>
+<script src="./base64js.min.js"></script>
+</head>
+<body lang='en'>
+  <button id="start-stream">Play Sound Using AudioContent</button>
+
+	<br><br>
+
+	<audio controls="controls" autobuffer="autobuffer" autoplay="autoplay">
+	    <source id="audio-source" src="" />
+	</audio>
+
+	<script>
+		var source;
+		var audioCtx;
+		var buffer;
+
+    console.log('a');
+    console.log(audio_data.length);
+    console.log('a');
+
+    function decodeAudio(mydata) {
+      const wav = new wavefile.WaveFile();
+      wav.fromScratch(1, 8000, '8m', base64js.toByteArray(mydata));
+      wav.fromMuLaw();
+      wav.toBitDepth("32f");
+      wav.toSampleRate(audioCtx.sampleRate);
+
+			// Create an empty three-second stereo buffer at the sample rate of the AudioContext
+			buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 1, audioCtx.sampleRate);
+
+			// add audio data to buffer
+			buffer.getChannelData(0).set(wav.getSamples());
+
+			return buffer;
+	  }
+
+		var startButton = document.getElementById('start-stream');
+	  startButton.onclick = function() {
+		  audioCtx = new AudioContext();
+
+      for(var i = 0; i < audio_data.length; i++) {
+        console.log(i);
+  			buffer = decodeAudio(audio_data[i]);
+  		  source = audioCtx.createBufferSource();
+  		  source.buffer = buffer;
+  		  source.connect(audioCtx.destination);
+  		  source.start();
+      }
+		};
+
+	</script>
+
+</body>
+</html>
